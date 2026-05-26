@@ -8,7 +8,7 @@ FILE_DIR="${SCRIPT_DIR}/configs"
 IMAGE="archlinux:latest"
 
 MAIN_CONTAINER="neovim"
-TREESITTER_PARSERS=("bash" "lua")
+LSPS=("ansible" "bash" "container" "lua")
 
 # CLI OPTIONS
 CHECK_HOST_PACKAGES=false
@@ -66,6 +66,10 @@ create_container() {
 	fi
 }
 
+create_lsp() {
+	create_container "lsp-$1"
+}
+
 install_container() {
 	container=$1
 	shift
@@ -92,15 +96,25 @@ if ! $CONFIG_ONLY ; then
 
 	echo "Create containers"
 	create_container "${MAIN_CONTAINER}"
-	for ts in "${TREESITTER_PARSERS[@]}" ; do
-		create_container "ts-${ts}"
+	create_container treesitter-build
+	for c in "${LSPS[@]}"; do
+		create_lsp "$c"
 	done
 
 	echo "Install to containers"
-	install_container "${MAIN_CONTAINER}" neovim git
-	for ts in "${TREESITTER_PARSERS[@]}" ; do
-		install_container "ts-${ts}" tree-sitter "${ts}" 
-	done
+	install_container "${MAIN_CONTAINER}" neovim git unzip tar curl
+	install_container treesitter-build gcc make
+	
+	install_container "lsp-ansible" nodejs npm python python-pip ansible ansible-lint yamllint
+	dbox_command "lsp-ansible" sudo npm install -g @ansible/ansible-language-server
+
+	install_container "lsp-bash" nodejs npm
+	dbox_command "lsp-bash" sudo npm install -g bash-language-server
+
+	install_container "lsp-container" nodejs hadolint
+	dbox_command "lsp-container" sudo npm install -g dockerfile-language-server-nodejs
+
+	install_container "lsp-lua" lua-language-server
 
 	echo "Export nvim"
 	dbox_command "${MAIN_CONTAINER}" distrobox-export --bin /usr/bin/nvim --export-path $HOME/.local/bin
