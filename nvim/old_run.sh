@@ -8,7 +8,7 @@ FILE_DIR="${SCRIPT_DIR}/configs"
 IMAGE="archlinux:latest"
 
 MAIN_CONTAINER="neovim"
-LSPS=("ansible" "bash" "container" "lua")
+LSPS=("ansible" "bash" "container" "ini" "lua")
 
 # CLI OPTIONS
 CHECK_HOST_PACKAGES=false
@@ -102,8 +102,8 @@ if ! $CONFIG_ONLY ; then
 	done
 
 	echo "Install to containers"
-	install_container "${MAIN_CONTAINER}" neovim git unzip tar curl
-	install_container treesitter-build gcc make
+	install_container "${MAIN_CONTAINER}" neovim git unzip ripgrep tar curl python python-pip lua51 luarocks base-devel
+	install_container treesitter-build gcc make tree-sitter-cli npm
 	
 	install_container "lsp-ansible" nodejs npm python python-pip ansible ansible-lint yamllint
 	dbox_command "lsp-ansible" sudo npm install -g @ansible/ansible-language-server
@@ -114,6 +114,7 @@ if ! $CONFIG_ONLY ; then
 	install_container "lsp-container" nodejs hadolint
 	dbox_command "lsp-container" sudo npm install -g dockerfile-language-server-nodejs
 
+	install_container "lsp-ini" taplo
 	install_container "lsp-lua" lua-language-server
 
 	echo "Export nvim"
@@ -122,7 +123,7 @@ fi
 
 echo "Copy configs"
 cp "${FILE_DIR}/init.lua" "${CONFIG_DIR}/init.lua"
-cp -a "${FILE_DIR}"/*/ "${CONFIG_DIR}/lua"
+cp -a "${FILE_DIR}"/*/ "${CONFIG_DIR}/"
 
 echo "Run nvim commands"
 nvim_command -c "helptags ALL"
