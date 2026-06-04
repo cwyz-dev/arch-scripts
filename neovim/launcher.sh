@@ -5,7 +5,7 @@ for arg in "$@" ; do
 	if [ -e "$arg" ] ; then
 		ABS_PATH=$(realpath "$arg")
 		if [[ "$ABS_PATH" == "$HOME"* ]] ; then
-			CONTAINER_PATH="${ABS_PATH|$HOME|/workspace}"
+			CONTAINER_PATH="${ABS_PATH/$HOME/\/workspace}"
 			ARGS+=("$CONTAINER_PATH")
 		else
 			ARGS+=("$ABS_PATH")
