@@ -17,11 +17,14 @@ podman rm -fi "$CONTAINER_NAME"
 podman run -d \
 	--name "$CONTAINER_NAME" \
 	--ipc=host --pid=host \
+	--userns=keep-id \
 \
-	-v "$CONFIG_DIR:/root/.config/nvim:Z" \
-	-v "$SHARE_DIR:/root/.local/share/nvim:Z" \
-	-v "$STATE_DIR:/root/.local/state/nvim:Z" \
-	-v "$HOME:/workspace:Z" \
+	-e TERM="$TERM" \
+\
+	-v "$CONFIG_DIR":"/root/.config/nvim":Z \
+	-v "$SHARE_DIR":"/root/.local/share/nvim":Z \
+	-v "$STATE_DIR":"/root/.local/state/nvim":Z \
+	-v "$HOME":"/workspace":z \
 \
 	"$IMAGE_NAME"
 
@@ -31,6 +34,9 @@ mkdir -p "$USER_SYSTEMD_DIR"
 cp -a "$SCRIPT_DIR/daemon.service" "$USER_SYSTEMD_DIR/neovim-daemon.service"
 systemctl --user daemon-reload
 systemctl --user enable --now neovim-daemon.service
+
+podman exec -it "$CONTAINER_NAME" nvim "+Lazy! sync" -c "qa"
+podman exec -it "$CONTAINER_NAME" nvim "+Lazy! update" -c "qa"
 
 # Wrapper
 BIN_DIR="$HOME/.local/bin"
