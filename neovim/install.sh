@@ -16,16 +16,16 @@ mkdir -p "$SHARE_DIR" "$STATE_DIR"
 podman rm -fi "$CONTAINER_NAME"
 podman run -d \
 	--name "$CONTAINER_NAME" \
-	--ipc=host --pid=host \
-	--userns=keep-id \
-\
+	--ipc=host \
+	--pid=host \
+	\
 	-e TERM="$TERM" \
-\
+	\
 	-v "$CONFIG_DIR":"/root/.config/nvim":Z \
 	-v "$SHARE_DIR":"/root/.local/share/nvim":Z \
 	-v "$STATE_DIR":"/root/.local/state/nvim":Z \
 	-v "$HOME":"/workspace":z \
-\
+	\
 	"$IMAGE_NAME"
 
 # Set up service
@@ -42,4 +42,3 @@ podman exec -it "$CONTAINER_NAME" nvim "+Lazy! update" -c "qa"
 BIN_DIR="$HOME/.local/bin"
 mkdir -p "$BIN_DIR"
 cp -a "$SCRIPT_DIR/launcher.sh" "$BIN_DIR/nvim"
-
